@@ -1,0 +1,2 @@
+../Rove_comm/CAN_server.c:4:6:RC_CAN_init	1
+../Rove_comm/CAN_server.c:8:6:RC_CAN_send	1

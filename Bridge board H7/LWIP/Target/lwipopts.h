@@ -118,7 +118,6 @@
  /* USER CODE BEGIN 1 */
  #undef MEM_ALIGNMENT
  #define MEM_ALIGNMENT 32
- /* USER CODE END 1 */
 /* USER CODE END 1 */
 
 #ifdef __cplusplus

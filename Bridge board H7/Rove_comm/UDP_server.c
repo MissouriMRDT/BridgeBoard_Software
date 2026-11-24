@@ -1,0 +1,269 @@
+#include "lwip/udp.h"
+#include "lwip/pbuf.h"
+#include "stdio.h"
+#include "lwip/api.h"
+#include "lwip/sys.h"
+#include "lwip/ip_addr.h"
+#include "lwip/init.h"
+#include "lwip/def.h"
+#include <string.h>
+#include "UDP_server.h"
+#include "main.h"
+
+
+volatile RC_payload_t payload_t;
+ip_addr_t substribers[14];
+ip_addr_t Zero_IP;
+struct udp_pcb *upcb;
+
+void udpServer_init(void)
+{
+
+
+    err_t err;
+    upcb = udp_new();
+
+    ip_addr_t myIPADDR;
+    IP_ADDR4(&myIPADDR,192,168,2,10);
+    IP_ADDR4(&Zero_IP,0,0,0,0);
+    err = udp_bind(upcb, &myIPADDR, 11000);
+
+    if(err == ERR_OK)
+    {
+        udp_recv(upcb, RC_receive_callback, NULL);
+    }
+    else
+    {
+        udp_remove(upcb);
+    }
+}
+
+err_t RC_Send_Blank(struct udp_pcb *pcb, const ip_addr_t *send_IP, uint16_t data_id){
+	//size of header
+	size_t pack_bytes =sizeof(RC_header_t);
+	//creation of the buffer being sent
+	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, (uint16_t)pack_bytes, PBUF_RAM);
+	//creation of header
+	RC_header_t hdr;
+	hdr.version =0x19;
+	hdr.Data_ID = htons(data_id);
+	hdr.Count = htons(0);
+	hdr.Data_type = 0;
+	//adding the header into the buffer no payload for this send
+	memcpy((uint8_t *)p->payload, &hdr, pack_bytes);
+
+	err_t err = udp_sendto(pcb, p, send_IP, RC_Port);
+	pbuf_free(p);
+	return err;
+}
+
+void RC_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port){
+
+	RC_header_t hdr;
+	RC_header_t hdr_raw;
+	static RC_payload_t payload;
+
+//	HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+
+
+	pbuf_copy_partial(p, &hdr_raw, sizeof(RC_header_t),0);
+
+	hdr.version =hdr_raw.version;
+	hdr.Data_ID = ntohs(hdr_raw.Data_ID);
+	hdr.Count = ntohs(hdr_raw.Count);
+	hdr.Data_type = hdr_raw.Data_type;
+	payload.Count = ntohs(hdr_raw.Count);
+	payload.Data_type = hdr_raw.Data_type;
+
+	if(hdr.Count != 0){
+		switch(RC_DataID_converter(hdr.Data_type)){
+		case 1:{
+//			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+			pbuf_copy_partial(p, payload.from_uint8, hdr.Count, sizeof(RC_header_t));
+			break;}
+		case 2:{
+			pbuf_copy_partial(p, payload.from_uint16, hdr.Count*sizeof(uint16_t), sizeof(RC_header_t));
+			for(uint8_t i=0; i<hdr.Count;i++){
+				payload.from_int16[i]=ntohs(payload.from_int16[i]);
+			}
+			break;}
+		case 4:{
+			pbuf_copy_partial(p, payload.from_uint32, hdr.Count*sizeof(uint32_t), sizeof(RC_header_t));
+			for(uint8_t i=0; i<hdr.Count;i++){
+				payload.from_int32[i]=ntohl(payload.from_int32[i]);
+						}
+			break;}
+		case 8:{
+			pbuf_copy_partial(p, payload.from_double, hdr.Count*sizeof(double), sizeof(RC_header_t));
+			for(uint8_t i=0; i<hdr.Count;i++){
+				payload.from_double[i]=ntohxl(payload.from_double[i]);
+						}
+			break;}
+		}}
+	payload_t = payload;
+	if(hdr.Data_ID<6){
+		// rovecomm standard commands
+	switch(hdr.Data_ID){
+	case 1:
+		RC_Send_Blank(upcb, addr,2);
+		break;
+	case 3:
+		//subscribe IP
+		add_subscriber(addr);
+		break;
+
+	case 4:
+		//un subscribe IP
+		remove_subscriber(addr);
+		break;
+
+	}}
+	else{
+//		RC_functionCallack( hdr, &payload); #TODO re-add
+	}
+
+
+	pbuf_free(p);
+}
+
+void add_subscriber(const ip_addr_t *addr){
+	//check for duplicate
+	for (int i =0; i<maxSubscriber; i++){
+		if (ip_addr_cmp(&substribers[i], addr)){
+			return;
+		}
+	}
+
+	//find open spot
+	for (int i=0; i<maxSubscriber; i++){
+		if(ip_addr_cmp(&substribers[i], &Zero_IP)){
+			ip_addr_copy(substribers[i], *addr);
+
+			return;
+		}
+	}
+
+
+}
+void remove_subscriber(const ip_addr_t *addr){
+	//searches for IP in array
+	for (int i =0; i<maxSubscriber; i++){
+			if (ip_addr_cmp(&substribers[i], addr)){
+				ip_addr_copy(substribers[i], Zero_IP);
+
+
+			}
+		}
+
+
+}
+
+void Send_subscriber(uint16_t data_id, uint16_t data_length, uint8_t data_size,uint8_t data_type, const void *data){
+
+	size_t pack_bytes =sizeof(RC_header_t)+(data_length*data_size);
+		//creation of the buffer being sent
+		struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, (uint16_t)pack_bytes, PBUF_RAM);
+
+	RC_header_t hdr;
+		hdr.version =0x19;
+		hdr.Data_ID = htons(data_id);
+		hdr.Count = htons(data_length);
+		hdr.Data_type = data_type;
+		//adding the header into the buffer no payload for this send
+		memcpy((uint8_t *)p->payload, &hdr, sizeof(RC_header_t));
+
+		//add payload
+
+
+
+
+		if(data_length !=0){
+		switch(data_size){
+		case 1:
+
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), data, data_length);
+			break;
+		case 2:{
+			uint16_t val[data_length];
+			memcpy(val, data, sizeof(uint16_t)*data_length);
+			for(uint16_t i=0; i<data_length; i++){
+				val[i] = htons(val[i]);}
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
+			break;}
+		case 4:{
+			uint32_t val[data_length];
+			memcpy(val, data, sizeof(uint32_t)*data_length);
+			for(uint16_t i=0; i<data_length; i++){
+				val[i]=htonl(val[i]);}
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
+			break;}
+		case 8:{
+			uint64_t val[data_length];
+			memcpy(val, data, sizeof(uint64_t)*data_length);
+			for(uint16_t i=0; i<data_length; i++){
+				val[i]=htonxl(val[i]);}
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
+			break;}
+
+		}}
+
+		for (int i =0; i<maxSubscriber; i++){
+			if(!ip_addr_cmp(&substribers[i], &Zero_IP)){
+				udp_sendto(upcb, p, &substribers[i], RC_Port);
+		}}
+		pbuf_free(p);
+
+}
+
+uint8_t RC_DataID_converter(uint8_t type){
+	switch(type){
+	case 0:
+	case 1:
+	case 8:
+		return 1;
+	case 2:
+	case 3:
+		return 2;
+	case 4:
+	case 5:
+	case 6:
+		return 4;
+	case 7:
+		return 8;
+	default:
+		return 1;
+
+
+	}
+}
+
+
+uint64_t htonxl(uint64_t data){return __builtin_bswap64(data);}
+uint64_t ntohxl(uint64_t data){return __builtin_bswap64(data);}
+
+
+void RC_write_blank(uint16_t data_id){Send_subscriber(data_id,0,0,0,0);}
+// for single
+void RC_write_u8(uint16_t data_id, uint8_t data){Send_subscriber(data_id,1,1,1,&data);}
+void RC_write_8(uint16_t data_id, int8_t data){Send_subscriber(data_id,1,1,0,&data);}
+void RC_write_16(uint16_t data_id, int16_t data){Send_subscriber(data_id,1,2,2,&data);}
+void RC_write_u16(uint16_t data_id, uint16_t data){Send_subscriber(data_id,1,2,3,&data);}
+void RC_write_32(uint16_t data_id, int32_t data){Send_subscriber(data_id,1,4,4,&data);}
+void RC_write_u32(uint16_t data_id, uint32_t data){Send_subscriber(data_id,1,4,5,&data);}
+void RC_write_float(uint16_t data_id, float data){Send_subscriber(data_id,1,4,6,&data);}
+void RC_write_double(uint16_t data_id, double data){Send_subscriber(data_id,1,8,7,&data);}
+void RC_write_char(uint16_t data_id, char data){Send_subscriber(data_id,1,1,8,&data);}
+//for multiple
+void RC_write_u8_arr(uint16_t data_id, uint16_t data_length, uint8_t data[]){Send_subscriber(data_id,data_length,1,1,data);}
+void RC_write_8_arr(uint16_t data_id, uint16_t data_length, int8_t data[]){Send_subscriber(data_id,data_length,1,0,data);}
+void RC_write_16_arr(uint16_t data_id, uint16_t data_length, int16_t data[]){Send_subscriber(data_id,data_length,2,2,data);}
+void RC_write_u16_arr(uint16_t data_id, uint16_t data_length, uint16_t data[]){Send_subscriber(data_id,data_length,2,3,data);}
+void RC_write_32_arr(uint16_t data_id, uint16_t data_length, int32_t data[]){Send_subscriber(data_id,data_length,4,4,data);}
+void RC_write_u32_arr(uint16_t data_id, uint16_t data_length, uint32_t data[]){Send_subscriber(data_id,data_length,4,5,data);}
+void RC_write_float_arr(uint16_t data_id, uint16_t data_length, float data[]){Send_subscriber(data_id,data_length,4,6,data);}
+void RC_write_double_arr(uint16_t data_id, uint16_t data_length, double data[]){Send_subscriber(data_id,data_length,8,7,data);}
+void RC_write_char_arr(uint16_t data_id, uint16_t data_length, char data[]){Send_subscriber(data_id,data_length,1,8,data);}
+
+
+
+

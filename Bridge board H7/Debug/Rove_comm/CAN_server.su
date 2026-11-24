@@ -1,0 +1,2 @@
+../Rove_comm/CAN_server.c:4:6:RC_CAN_init	4	static
+../Rove_comm/CAN_server.c:8:6:RC_CAN_send	16	static
