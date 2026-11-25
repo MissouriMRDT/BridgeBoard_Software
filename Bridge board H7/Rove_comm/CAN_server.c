@@ -14,7 +14,7 @@ void RC_CAN_init(FDCAN_HandleTypeDef *hfdcan1, uint8_t ID){
 	CAN_ID_h filter_mask = {.raw =0};
 
 	filter_ID.header.dest = ID;
-	filter_mask.header.dest = 0x07;
+	filter_mask.header.dest = 0x0F;
 
 	Filterconfig.FilterID1 = filter_ID.raw;
 	Filterconfig.FilterID2 = filter_mask.raw;
@@ -38,7 +38,8 @@ void RC_CAN_init(FDCAN_HandleTypeDef *hfdcan1, uint8_t ID){
 }
 
 void RC_CAN_send(FDCAN_HandleTypeDef *hfdcan1,CAN_ID_h header){
-	FDCAN_TxHeaderTypeDef hdr;
+	FDCAN_TxHeaderTypeDef hdr = {0};
+	uint8_t dummy_data[4]     = {0};
 
 		hdr.Identifier = header.raw & 0x1FFFFFFFU;
 		hdr.IdType = FDCAN_EXTENDED_ID;
@@ -50,7 +51,10 @@ void RC_CAN_send(FDCAN_HandleTypeDef *hfdcan1,CAN_ID_h header){
 		hdr.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 		hdr.MessageMarker = 0;
 
-		HAL_FDCAN_AddMessageToTxFifoQ(hfdcan1, &hdr, 0);
+		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan1, &hdr, dummy_data) != HAL_OK) {
+
+		        Error_Handler();
+		    }
 }
 
 void RC_CAN_Receive(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs){
@@ -61,9 +65,7 @@ void RC_CAN_Receive(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs){
 		CAN_ID_h rx_ID;
 		rx_ID.raw=rx_header.Identifier;
 
-		if(rx_ID.header.data_ID == 7){
-			//add LED for sub board
-		}
+
 	}
 
 }

@@ -6,7 +6,7 @@
 #include <stddef.h>
 #include "lwip/ip_addr.h"
 #include "lwip/udp.h"
-#define RC_maxPayload 65535
+#define RC_maxPayload 64
 #define RC_Version 0x01
 #define RC_Port 11000
 #define maxSubscriber 14
@@ -49,11 +49,12 @@ typedef struct {
 extern ip_addr_t substribers[14];
 
 void udpServer_init(void);
-err_t RC_Send_Blank(struct udp_pcb *pcb, const ip_addr_t *send_IP, uint16_t data_id);
+void RC_Send_Blank(struct udp_pcb *pcb, const ip_addr_t *send_IP, uint16_t data_id);
 void RC_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port);
 void add_subscriber(const ip_addr_t *addr);
 void remove_subscriber(const ip_addr_t *addr);
 void Send_subscriber(uint16_t data_id, uint16_t data_length, uint8_t data_size,uint8_t data_type, const void *data);
+void RC_functionCallack(RC_header_t hdr, RC_payload_t *payload);
 
 uint64_t htonxl(uint64_t data);
 uint64_t ntohxl(uint64_t data);

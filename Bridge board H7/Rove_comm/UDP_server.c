@@ -1,14 +1,22 @@
-#include "lwip/udp.h"
-#include "lwip/pbuf.h"
-#include "stdio.h"
-#include "lwip/api.h"
-#include "lwip/sys.h"
-#include "lwip/ip_addr.h"
-#include "lwip/init.h"
-#include "lwip/def.h"
-#include <string.h>
+//#include "lwip/udp.h"
+//#include "lwip/pbuf.h"
+//#include "stdio.h"
+//#include "lwip/api.h"
+//#include "lwip/sys.h"
+//#include "lwip/ip_addr.h"
+//#include "lwip/init.h"
+//#include "lwip/def.h"
+//#include <string.h>
+//#include <stdint.h>
+//#include "UDP_server.h"
+//#include "lwip/udp.h"
+//#include "main.h"
+
 #include "UDP_server.h"
 #include "main.h"
+#include "lwip/pbuf.h"
+#include "lwip/def.h"
+#include <string.h>
 
 
 volatile RC_payload_t payload_t;
@@ -38,7 +46,7 @@ void udpServer_init(void)
     }
 }
 
-err_t RC_Send_Blank(struct udp_pcb *pcb, const ip_addr_t *send_IP, uint16_t data_id){
+void RC_Send_Blank(struct udp_pcb *pcb, const ip_addr_t *send_IP, uint16_t data_id){
 	//size of header
 	size_t pack_bytes =sizeof(RC_header_t);
 	//creation of the buffer being sent
@@ -52,9 +60,9 @@ err_t RC_Send_Blank(struct udp_pcb *pcb, const ip_addr_t *send_IP, uint16_t data
 	//adding the header into the buffer no payload for this send
 	memcpy((uint8_t *)p->payload, &hdr, pack_bytes);
 
-	err_t err = udp_sendto(pcb, p, send_IP, RC_Port);
+	udp_sendto(pcb, p, send_IP, RC_Port);
 	pbuf_free(p);
-	return err;
+
 }
 
 void RC_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const ip_addr_t *addr, u16_t port){
@@ -119,7 +127,7 @@ void RC_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p, const 
 
 	}}
 	else{
-//		RC_functionCallack( hdr, &payload); #TODO re-add
+		RC_functionCallack( hdr, &payload);
 	}
 
 

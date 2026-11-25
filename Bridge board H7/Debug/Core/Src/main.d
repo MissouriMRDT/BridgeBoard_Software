@@ -87,7 +87,8 @@ Core/Src/main.o: ../Core/Src/main.c ../Core/Inc/main.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h \
+ C:/Users/evanh/Documents/BridgeBoard_Software/Bridge\ board\ H7/Rove_comm/CAN_server.h
 ../Core/Inc/main.h:
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h:
 ../Core/Inc/stm32h7xx_hal_conf.h:
@@ -179,3 +180,4 @@ C:/Users/evanh/Documents/BridgeBoard_Software/Bridge\ board\ H7/Rove_comm/UDP_se
 ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h:
 ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h:
 ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/udp.h:
+C:/Users/evanh/Documents/BridgeBoard_Software/Bridge\ board\ H7/Rove_comm/CAN_server.h:

@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "UDP_server.h"
+#include "CAN_server.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +59,7 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* USER CODE BEGIN PV */
-
+volatile uint32_t debug_cmd7_count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -123,7 +124,7 @@ int main(void)
   MX_FDCAN1_Init();
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
-
+  RC_CAN_init(&hfdcan1, 1);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -293,7 +294,17 @@ static void MX_FDCAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN FDCAN1_Init 2 */
-
+  HAL_FDCAN_DeInit(&hfdcan1);
+  hfdcan1.Init.ExtFiltersNbr       = 1;
+    hfdcan1.Init.RxFifo0ElmtsNbr     = 8;
+    hfdcan1.Init.RxFifo0ElmtSize     = FDCAN_DATA_BYTES_8;
+    hfdcan1.Init.TxFifoQueueElmtsNbr = 8;
+    hfdcan1.Init.TxFifoQueueMode     = FDCAN_TX_FIFO_OPERATION;
+    hfdcan1.Init.TxElmtSize          = FDCAN_DATA_BYTES_8;
+    if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
+    {
+      Error_Handler();
+    }
   /* USER CODE END FDCAN1_Init 2 */
 
 }
@@ -361,7 +372,19 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void RC_functionCallack(RC_header_t hdr,RC_payload_t *payload){
+	if(hdr.Data_ID==7){
 
+		//can send
+		debug_cmd7_count++;
+		CAN_ID_h header_h ={.raw=0};
+		header_h.header.dest =2;
+		header_h.header.src =1;
+		header_h.header.data_ID =7;
+		RC_CAN_send(&hfdcan1, header_h);
+	}
+
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -426,7 +449,7 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER2;
   MPU_InitStruct.BaseAddress = 0x30040000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_512B;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_1KB;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
   MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
