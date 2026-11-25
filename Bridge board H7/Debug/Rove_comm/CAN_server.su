@@ -1,2 +1,3 @@
-../Rove_comm/CAN_server.c:4:6:RC_CAN_init	4	static
-../Rove_comm/CAN_server.c:8:6:RC_CAN_send	16	static
+../Rove_comm/CAN_server.c:4:6:RC_CAN_init	64	static
+../Rove_comm/CAN_server.c:40:6:RC_CAN_send	56	static
+../Rove_comm/CAN_server.c:56:6:RC_CAN_Receive	72	static
