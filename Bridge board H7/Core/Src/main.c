@@ -385,6 +385,14 @@ void RC_functionCallack(RC_header_t hdr,RC_payload_t *payload){
 	}
 
 }
+
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs) {
+
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0U) {
+
+    	RC_CAN_Receive(hfdcan,RxFifo0ITs);
+    }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */

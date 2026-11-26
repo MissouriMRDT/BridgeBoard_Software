@@ -1,4 +1,5 @@
 #include "CAN_server.h"
+#include "UDP_server.h"
 #include "main.h"
 
 void RC_CAN_init(FDCAN_HandleTypeDef *hfdcan1, uint8_t ID){
@@ -64,6 +65,9 @@ void RC_CAN_Receive(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs){
 	if(HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_header, data) ==HAL_OK){
 		CAN_ID_h rx_ID;
 		rx_ID.raw=rx_header.Identifier;
+		if(rx_ID.header.data_ID ==8){
+			RC_write_blank(8);
+		}
 
 
 	}
