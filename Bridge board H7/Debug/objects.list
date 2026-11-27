@@ -131,3 +131,4 @@
 "./Middlewares/Third_Party/LwIP/system/OS/sys_arch.o"
 "./Rove_comm/CAN_server.o"
 "./Rove_comm/UDP_server.o"
+"./Rove_comm/UDP_submodule.o"

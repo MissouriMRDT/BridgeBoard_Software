@@ -118,6 +118,8 @@
  /* USER CODE BEGIN 1 */
  #undef MEM_ALIGNMENT
  #define MEM_ALIGNMENT 32
+#define MEMP_NUM_UDP_PCB 16
+#define MEMP_NUM_SYS_TIMEOUT 16
 /* USER CODE END 1 */
 
 #ifdef __cplusplus

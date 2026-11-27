@@ -19,7 +19,7 @@ typedef union{
 } CAN_ID_h;
 
 void RC_CAN_init(FDCAN_HandleTypeDef *hfdcan1, uint8_t ID);
-void RC_CAN_send(FDCAN_HandleTypeDef *hfdcan1,CAN_ID_h header);
+void RC_CAN_send(uint8_t dest, uint16_t data_ID, uint8_t length, uint8_t data_Type);
 void RC_CAN_Receive(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
 
 #endif

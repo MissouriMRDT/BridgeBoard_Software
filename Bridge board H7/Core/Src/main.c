@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "UDP_server.h"
 #include "CAN_server.h"
+#include "UDP_submodule.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -373,16 +374,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void RC_functionCallack(RC_header_t hdr,RC_payload_t *payload){
-	if(hdr.Data_ID==7){
 
-		//can send
-		debug_cmd7_count++;
-		CAN_ID_h header_h ={.raw=0};
-		header_h.header.dest =2;
-		header_h.header.src =1;
-		header_h.header.data_ID =7;
-		RC_CAN_send(&hfdcan1, header_h);
-	}
 
 }
 
@@ -408,6 +400,7 @@ void StartDefaultTask(void *argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   udpServer_init();
+  udpSubmodule_init(2,192,168,2,110);
   /* Infinite loop */
   for(;;)
   {

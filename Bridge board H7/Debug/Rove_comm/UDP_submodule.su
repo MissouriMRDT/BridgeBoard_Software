@@ -1,0 +1,4 @@
+../Rove_comm/UDP_submodule.c:35:14:virtual_netif_init	16	static
+../Rove_comm/UDP_submodule.c:47:14:multi_ip_tcpip_input	40	static
+../Rove_comm/UDP_submodule.c:76:6:udpSubmodule_init	72	static
+../Rove_comm/UDP_submodule.c:124:6:submodule_receive_callback	56	static

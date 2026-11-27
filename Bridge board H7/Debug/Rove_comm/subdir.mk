@@ -6,15 +6,18 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Rove_comm/CAN_server.c \
-../Rove_comm/UDP_server.c 
+../Rove_comm/UDP_server.c \
+../Rove_comm/UDP_submodule.c 
 
 OBJS += \
 ./Rove_comm/CAN_server.o \
-./Rove_comm/UDP_server.o 
+./Rove_comm/UDP_server.o \
+./Rove_comm/UDP_submodule.o 
 
 C_DEPS += \
 ./Rove_comm/CAN_server.d \
-./Rove_comm/UDP_server.d 
+./Rove_comm/UDP_server.d \
+./Rove_comm/UDP_submodule.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +27,7 @@ Rove_comm/%.o Rove_comm/%.su Rove_comm/%.cyclo: ../Rove_comm/%.c Rove_comm/subdi
 clean: clean-Rove_comm
 
 clean-Rove_comm:
-	-$(RM) ./Rove_comm/CAN_server.cyclo ./Rove_comm/CAN_server.d ./Rove_comm/CAN_server.o ./Rove_comm/CAN_server.su ./Rove_comm/UDP_server.cyclo ./Rove_comm/UDP_server.d ./Rove_comm/UDP_server.o ./Rove_comm/UDP_server.su
+	-$(RM) ./Rove_comm/CAN_server.cyclo ./Rove_comm/CAN_server.d ./Rove_comm/CAN_server.o ./Rove_comm/CAN_server.su ./Rove_comm/UDP_server.cyclo ./Rove_comm/UDP_server.d ./Rove_comm/UDP_server.o ./Rove_comm/UDP_server.su ./Rove_comm/UDP_submodule.cyclo ./Rove_comm/UDP_submodule.d ./Rove_comm/UDP_submodule.o ./Rove_comm/UDP_submodule.su
 
 .PHONY: clean-Rove_comm
 

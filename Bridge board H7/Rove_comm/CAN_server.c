@@ -2,8 +2,13 @@
 #include "UDP_server.h"
 #include "main.h"
 
+FDCAN_HandleTypeDef *hfdcan;
+uint8_t CAN_ID;
+
 void RC_CAN_init(FDCAN_HandleTypeDef *hfdcan1, uint8_t ID){
 
+	hfdcan=hfdcan1;
+	CAN_ID = ID;
 	FDCAN_FilterTypeDef Filterconfig = {0};
 
 	Filterconfig.IdType = FDCAN_EXTENDED_ID;
@@ -38,9 +43,16 @@ void RC_CAN_init(FDCAN_HandleTypeDef *hfdcan1, uint8_t ID){
 	  }
 }
 
-void RC_CAN_send(FDCAN_HandleTypeDef *hfdcan1,CAN_ID_h header){
+void RC_CAN_send(uint8_t dest, uint16_t data_ID, uint8_t length, uint8_t data_Type){
 	FDCAN_TxHeaderTypeDef hdr = {0};
 	uint8_t dummy_data[4]     = {0};
+	CAN_ID_h header = {.raw =0};
+
+	header.header.src=CAN_ID;
+	header.header.dest = dest;
+	header.header.data_ID = data_ID;
+	header.header.length = length;
+	header.header.type = data_Type;
 
 		hdr.Identifier = header.raw & 0x1FFFFFFFU;
 		hdr.IdType = FDCAN_EXTENDED_ID;
@@ -52,7 +64,7 @@ void RC_CAN_send(FDCAN_HandleTypeDef *hfdcan1,CAN_ID_h header){
 		hdr.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 		hdr.MessageMarker = 0;
 
-		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan1, &hdr, dummy_data) != HAL_OK) {
+		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &hdr, dummy_data) != HAL_OK) {
 
 		        Error_Handler();
 		    }
