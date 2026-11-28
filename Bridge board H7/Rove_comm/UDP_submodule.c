@@ -73,6 +73,16 @@ static err_t multi_ip_tcpip_input(struct pbuf *p, struct netif *inp){
 
 }
 
+uint8_t FindSubmoduleSlot(uint8_t CAN_ID){
+	uint8_t slot =-1;
+	for(uint8_t i =0; i<maxSubmodules ; i++){
+		if(UDP_Submodule_Lookup[i] ==CAN_ID){
+			slot =i;
+			break;}
+			}
+	return slot;
+}
+
 void udpSubmodule_init(uint8_t CAN_ID, uint8_t addr1, uint8_t addr2, uint8_t addr3, uint8_t addr4){
 	LOCK_TCPIP_CORE();
 	gnetif.input = multi_ip_tcpip_input;
@@ -213,63 +223,63 @@ void submodule_receive_callback(void *arg, struct udp_pcb *upcb, struct pbuf *p,
 //
 //}
 //
-//void submodule_Send_subscriber(uint16_t data_id, uint16_t data_length, uint8_t data_size,uint8_t data_type, const void *data){
-//
-//	size_t pack_bytes =sizeof(RC_header_t)+(data_length*data_size);
-//		//creation of the buffer being sent
-//		struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, (uint16_t)pack_bytes, PBUF_RAM);
-//
-//	RC_header_t hdr;
-//		hdr.version =0x19;
-//		hdr.Data_ID = htons(data_id);
-//		hdr.Count = htons(data_length);
-//		hdr.Data_type = data_type;
-//		//adding the header into the buffer no payload for this send
-//		memcpy((uint8_t *)p->payload, &hdr, sizeof(RC_header_t));
-//
-//		//add payload
-//
-//
-//
-//
-//		if(data_length !=0){
-//		switch(data_size){
-//		case 1:
-//
-//			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), data, data_length);
-//			break;
-//		case 2:{
-//			uint16_t val[data_length];
-//			memcpy(val, data, sizeof(uint16_t)*data_length);
-//			for(uint16_t i=0; i<data_length; i++){
-//				val[i] = htons(val[i]);}
-//			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
-//			break;}
-//		case 4:{
-//			uint32_t val[data_length];
-//			memcpy(val, data, sizeof(uint32_t)*data_length);
-//			for(uint16_t i=0; i<data_length; i++){
-//				val[i]=htonl(val[i]);}
-//			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
-//			break;}
-//		case 8:{
-//			uint64_t val[data_length];
-//			memcpy(val, data, sizeof(uint64_t)*data_length);
-//			for(uint16_t i=0; i<data_length; i++){
-//				val[i]=htonxl(val[i]);}
-//			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
-//			break;}
-//
-//		}}
-//
-//		for (int i =0; i<maxSubscriber; i++){
-//			if(!ip_addr_cmp(&substribers[i], &Zero_IP)){
-//				udp_sendto(upcb, p, &substribers[i], RC_Port);
-//		}}
-//		pbuf_free(p);
-//
-//}
-//
+void submodule_Send_subscriber(uint8_t CAN_ID, uint16_t data_id, uint16_t data_length, uint8_t data_size,uint8_t data_type, const void *data){
+
+	size_t pack_bytes =sizeof(RC_header_t)+(data_length*data_size);
+		//creation of the buffer being sent
+	LOCK_TCPIP_CORE();
+	struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, (uint16_t)pack_bytes, PBUF_RAM);
+
+	RC_header_t hdr;
+		hdr.version =0x19;
+		hdr.Data_ID = htons(data_id);
+		hdr.Count = htons(data_length);
+		hdr.Data_type = data_type;
+		//adding the header into the buffer no payload for this send
+		memcpy((uint8_t *)p->payload, &hdr, sizeof(RC_header_t));
+
+		//add payload
+
+		if(data_length !=0){
+		switch(data_size){
+		case 1:
+
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), data, data_length);
+			break;
+		case 2:{
+			uint16_t val[data_length];
+			memcpy(val, data, sizeof(uint16_t)*data_length);
+			for(uint16_t i=0; i<data_length; i++){
+				val[i] = htons(val[i]);}
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
+			break;}
+		case 4:{
+			uint32_t val[data_length];
+			memcpy(val, data, sizeof(uint32_t)*data_length);
+			for(uint16_t i=0; i<data_length; i++){
+				val[i]=htonl(val[i]);}
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
+			break;}
+		case 8:{
+			uint64_t val[data_length];
+			memcpy(val, data, sizeof(uint64_t)*data_length);
+			for(uint16_t i=0; i<data_length; i++){
+				val[i]=htonxl(val[i]);}
+			memcpy((uint8_t *)p->payload + sizeof(RC_header_t), val, data_size*data_length);
+			break;}
+
+		}}
+
+		uint8_t slot =FindSubmoduleSlot(CAN_ID);
+
+		for (int i =0; i<maxSubscriber; i++){
+			if(!ip_addr_isany(&UDP_Submodules[slot].subscribers[i])){
+				udp_sendto(UDP_Submodules[slot].upcb, p, &UDP_Submodules[slot].subscribers[i], RC_Port);
+		}}
+		pbuf_free(p);
+		UNLOCK_TCPIP_CORE();
+}
+
 
 
 
